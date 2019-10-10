@@ -72,8 +72,11 @@ public class FactoryGUI
                 factoryFrame.pack();
                 factoryFrame.setVisible(true);
 
+
             }
         });
     }
+
+    private
 
 }
