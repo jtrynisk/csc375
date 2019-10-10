@@ -51,6 +51,20 @@ public class FactoryGUI
             public void actionPerformed(ActionEvent e)
             {
                 createAndShowFactoryFloor();
+                GeneticAlgorithm ga = new GeneticAlgorithm(Integer.parseInt(lengthField.getText()), Integer.parseInt(widthField.getText()),
+                Integer.parseInt(threadField.getText()), Integer.parseInt(stationField.getText()));
+
+                ga.run();
+            }
+        });
+
+        clearButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                stationField.setText("");
+                lengthField.setText("");
+                widthField.setText("");
+                threadField.setText("");
             }
         });
     }
@@ -71,12 +85,8 @@ public class FactoryGUI
                 factoryFrame.getContentPane().add(grid);
                 factoryFrame.pack();
                 factoryFrame.setVisible(true);
-
-
             }
         });
     }
-
-    private
 
 }

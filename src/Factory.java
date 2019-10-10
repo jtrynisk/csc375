@@ -91,23 +91,19 @@ public class Factory
             for (int j = 0; j < width; j++)
             {
                 //We have a station compare to the left.
-                if(floor[i][j] != null)
-                {
-                    try{
-                        if(floor[i][j].getType() == floor[i -1][j - 1].getType())
-                        {
+                try {
+                    if (floor[i][j] != null && floor[i - 1][j - 1] != null) {
+                        if (floor[i][j].getType() == floor[i - 1][j - 1].getType()) {
                             fitness += 0;
-                        }
-                        else
-                        {
+                        } else {
                             //Not next to it's own type increment
                             fitness++;
                         }
-                    }catch(ArrayIndexOutOfBoundsException e)
-                    {
-                        //Nothing we are checking the leftmost row against things to the left
-                        //They obviously will be happy there so drop the exception.
                     }
+                }catch(ArrayIndexOutOfBoundsException e)
+                {
+                    //Nothing we are checking the leftmost row against things to the left
+                    //They obviously will be happy there so drop the exception.
                 }
             }
         }
