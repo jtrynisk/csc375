@@ -67,14 +67,53 @@ public class Factory
 
             if(floor[x][y] != null)
             {
-                
+                Station swapStation = spotsFilled.remove(ThreadLocalRandom.current().nextInt(spotsFilled.size()));
+                floor[x][y] = swapStation;
+                floor[swapStation.x][swapStation.y] = null;
+                swapStation.x = x;
+                swapStation.y = y;
+                spotsFilled.add(swapStation);
+            }
+            else
+            {
+                //Intentionally left blank as the random spot was full already.
             }
         }
     }
 
+    public int fitness()
+    {
+        int fitness = -1;
 
+        //Go through each spot on the floor and see if it is next to something it doesn't like.
+        for(int i = 0; i < length; i++)
+        {
+            for (int j = 0; j < width; j++)
+            {
+                //We have a station compare to the left.
+                if(floor[i][j] != null)
+                {
+                    try{
+                        if(floor[i][j].getType() == floor[i -1][j - 1].getType())
+                        {
+                            fitness += 0;
+                        }
+                        else
+                        {
+                            //Not next to it's own type increment
+                            fitness++;
+                        }
+                    }catch(ArrayIndexOutOfBoundsException e)
+                    {
+                        //Nothing we are checking the leftmost row against things to the left
+                        //They obviously will be happy there so drop the exception.
+                    }
+                }
+            }
+        }
 
-
+        return fitness;
+    }
 
     public int getLength() {
         return length;
