@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 
 public class FactoryGUI
 {
+    JPanel mainPanel = new JPanel();
     JFrame mainFrame = new JFrame();
     JButton submitButton = new JButton("Submit");
     JButton clearButton = new JButton("Clear");
@@ -16,13 +17,16 @@ public class FactoryGUI
     JTextField stationField = new JTextField("Amount");
     JLabel threadLabel = new JLabel("Amount of Threads");
     JTextField threadField = new JTextField("Amount");
-    GridLayout mainLayout = new GridLayout(5,2);
+    GridLayout mainLayout = new GridLayout(5,2,10,10);
 
     public FactoryGUI()
     {
-        final JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(mainLayout);
+        this.createMainWindow();
+    }
 
+    public void createMainWindow()
+    {
+        mainPanel.setLayout(mainLayout);
         mainPanel.add(stationLabel);
         mainPanel.add(stationField);
         mainPanel.add(lengthLabel);
@@ -35,8 +39,9 @@ public class FactoryGUI
         mainPanel.add(clearButton);
 
         mainFrame.add(mainPanel, BorderLayout.CENTER);
-        mainFrame.setSize(800, 1000);
+        mainFrame.setSize(1000, 800);
         mainFrame.setLayout(mainLayout);
+        mainFrame.setResizable(false);
         mainFrame.setVisible(true);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -45,17 +50,30 @@ public class FactoryGUI
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                JPanel floorPanel = new JPanel();
-                BorderLayout floorLayout = new BorderLayout(Integer.parseInt(lengthField.getText()), Integer.parseInt(widthField.getText()));
+                createAndShowFactoryFloor();
+            }
+        });
+    }
 
-                JPanel[][] floorGrid = new JPanel[Integer.parseInt(lengthField.getText())][Integer.parseInt(widthField.getText())];
+    private void createAndShowFactoryFloor()
+    {
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                int length = Integer.parseInt(lengthField.getText());
+                int width = Integer.parseInt(widthField.getText());
+                int height = 600 / length;
 
+                Grid grid = new Grid(length, width, height);
+                JFrame factoryFrame = new JFrame("Factory Floor");
 
+                factoryFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+                factoryFrame.getContentPane().add(grid);
+                factoryFrame.pack();
+                factoryFrame.setVisible(true);
 
             }
         });
-
     }
-
 
 }
