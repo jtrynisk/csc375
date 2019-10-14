@@ -27,11 +27,11 @@ public class SolutionGrid extends JPanel {
         {
             for(int y = 0; y < width; y++)
             {
-                g.drawRect(x  * height, y * height, height, height);
                 if(factory.floor[x][y] != null)
                 {
                     g.setColor(factory.floor[x][y].getColor());
                 }
+                g.drawRect(x  * height, y * height, height, height);
             }
         }
     }

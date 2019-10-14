@@ -69,8 +69,4 @@ public class Station
         return type;
     }
 
-    public void setType(int type) {
-        this.type = type;
-    }
-
 }

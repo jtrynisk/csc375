@@ -13,6 +13,7 @@ public class GeneticAlgorithm
     private volatile int fitness;
     private ReentrantLock fitnessLock = new ReentrantLock();
     private Exchanger<Factory> factoryExchanger = new Exchanger<>();
+    private volatile CountDownLatch latch;
 
     private static final int AMOUNT_OF_ITERATIONS = 50;
 
@@ -24,18 +25,33 @@ public class GeneticAlgorithm
         this.stations = stations;
         solution = new Factory(length, width, stations);
         fitness = solution.fitness();
+        this.latch = new CountDownLatch(numThreads);
     }
 
 
     public void run()
     {
         //Create the thread pool
+        Runnable[] tasks = new Runnable[numThreads];
         threadPool = Executors.newFixedThreadPool(numThreads);
-
-        //Execute the task for each thread.
+        //Fill the array with tasks
         for(int i = 0; i < numThreads; i++)
         {
-            threadPool.execute(geneticTask(i));
+            tasks[i] = geneticTask(i);
+        }
+
+        for(int j = 0; j < 10; j++)
+        {
+            for(int k = 0; k < numThreads; k++)
+            {
+                    threadPool.execute(tasks[k]);
+            }
+            try{
+                latch.await();
+            }catch(InterruptedException e)
+            {
+                System.out.println("Latch Interrupted");
+            }
         }
     }
 
@@ -44,7 +60,6 @@ public class GeneticAlgorithm
         Runnable runnable = () -> {
             //Setup for the runnable
             System.out.println("Thread " + id + " started");
-            final CountDownLatch latch = new CountDownLatch(numThreads);
             Factory temp = new Factory(length, width, stations);
             int counter = 0;
 
@@ -55,20 +70,8 @@ public class GeneticAlgorithm
                 temp.mutation();
                 compareSolutions(temp);
 
-                //If we are in a multiple of 10 offer up the solution.
-                if(i % 10 == 0)
-                {
-                    try{
-                        System.out.println("Exchanging " + id + "'s solution.");
-                        temp = factoryExchanger.exchange(temp);
-                    }catch(InterruptedException e)
-                    {
-                        System.out.println("Interrupted");
-                    }
-                }
-
-                latch.countDown();
             }
+            latch.countDown();
             System.out.println("Thread " + id + " finsihed");
         };
         return runnable;
@@ -84,7 +87,7 @@ public class GeneticAlgorithm
                 fitness = toCompare.fitness();
                 System.out.println("New fitness is " + fitness);
                 SolutionGrid sg = new SolutionGrid(length, width, 600 / length, solution);
-                JFrame solution = new JFrame();
+                JFrame solution = new JFrame("New Solution");
                 solution.getContentPane().add(sg);
                 solution.pack();
                 solution.setVisible(true);
