@@ -30,6 +30,7 @@ public class SolutionGrid extends JPanel {
                 if(factory.floor[x][y] != null)
                 {
                     g.setColor(factory.floor[x][y].getColor());
+                    g.fillRect(x  * height, y * height, height, height);
                 }
                 g.drawRect(x  * height, y * height, height, height);
             }

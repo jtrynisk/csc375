@@ -1,4 +1,8 @@
+import javafx.scene.control.Label;
+
 import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.ExecutorService;
@@ -9,15 +13,17 @@ public class GeneticAlgorithm
 {
     private final int length, width, numThreads, stations;
     private ExecutorService threadPool;
-    private volatile Factory solution;
+    public volatile Factory solution;
     private volatile int fitness;
     private ReentrantLock fitnessLock = new ReentrantLock();
-    private Exchanger<Factory> factoryExchanger = new Exchanger<>();
+    private ReentrantLock solutionLock = new ReentrantLock();
+    private ArrayList<Factory> solutionList = new ArrayList<>();
     private volatile CountDownLatch latch;
+    private JFrame mainFrame;
 
     private static final int AMOUNT_OF_ITERATIONS = 50;
 
-    GeneticAlgorithm(int length, int width, int numThreads, int stations)
+    GeneticAlgorithm(int length, int width, int numThreads, int stations, JFrame mainFrame)
     {
         this.length = length;
         this. width = width;
@@ -26,6 +32,7 @@ public class GeneticAlgorithm
         solution = new Factory(length, width, stations);
         fitness = solution.fitness();
         this.latch = new CountDownLatch(numThreads);
+        this.mainFrame = mainFrame;
     }
 
 
@@ -40,19 +47,42 @@ public class GeneticAlgorithm
             tasks[i] = geneticTask(i);
         }
 
-        for(int j = 0; j < 10; j++)
+        for(int j = 0; j < 100; j++)
         {
+            latch = new CountDownLatch(numThreads);
             for(int k = 0; k < numThreads; k++)
             {
-                    threadPool.execute(tasks[k]);
+                threadPool.execute(tasks[k]);
             }
             try{
                 latch.await();
+                for(Factory temp : solutionList)
+                {
+                    if(temp.fitness() > fitness)
+                    {
+                        solution = temp;
+                        fitness = temp.fitness();
+                    }
+                }
+                System.out.println("Fitness is " + fitness);
+                SolutionGrid sg = new SolutionGrid(length, width, 600 / length, solution);
+                mainFrame.setLayout(new BorderLayout());
+                mainFrame.getContentPane().add(new JLabel("Fitness = " + fitness), BorderLayout.SOUTH);
+                mainFrame.getContentPane().add(sg);
+                mainFrame.pack();
+                mainFrame.setVisible(true);
             }catch(InterruptedException e)
             {
                 System.out.println("Latch Interrupted");
             }
         }
+        SolutionGrid sg = new SolutionGrid(length, width, 600 / length, solution);
+        mainFrame.setLayout(new BorderLayout());
+        mainFrame.getContentPane().add(new JLabel("Fitness = " + fitness), BorderLayout.SOUTH);
+        mainFrame.getContentPane().add(sg);
+        mainFrame.pack();
+        mainFrame.setVisible(true);
+        System.out.println("end");
     }
 
     private Runnable geneticTask(int id)
@@ -61,16 +91,19 @@ public class GeneticAlgorithm
             //Setup for the runnable
             System.out.println("Thread " + id + " started");
             Factory temp = new Factory(length, width, stations);
-            int counter = 0;
 
             //Now iterate for a set amount to find the best solution.
             for(int i = 0; i < AMOUNT_OF_ITERATIONS; i++)
             {
+                Factory prev = temp;
                 //Try a mutation
                 temp.mutation();
-                compareSolutions(temp);
-
+                if(comparePrev(prev, temp))
+                {
+                    temp = prev;
+                }
             }
+            addSolution(temp);
             latch.countDown();
             System.out.println("Thread " + id + " finsihed");
         };
@@ -78,23 +111,23 @@ public class GeneticAlgorithm
     }
 
 
-    private void compareSolutions(Factory toCompare)
+    private boolean comparePrev(Factory previous, Factory mutated)
     {
-        fitnessLock.lock();
-        try {
-            if (toCompare.fitness() > fitness) {
-                solution = toCompare;
-                fitness = toCompare.fitness();
-                System.out.println("New fitness is " + fitness);
-                SolutionGrid sg = new SolutionGrid(length, width, 600 / length, solution);
-                JFrame solution = new JFrame("New Solution");
-                solution.getContentPane().add(sg);
-                solution.pack();
-                solution.setVisible(true);
-            }
-        }finally
+        if(previous.fitness() > mutated.fitness())
         {
-            fitnessLock.unlock();
+            return true;
+        }
+        return false;
+    }
+
+    private void addSolution(Factory temp)
+    {
+        solutionLock.lock();
+        try{
+            solutionList.add(temp);
+        }
+        finally{
+            solutionLock.unlock();
         }
     }
 }

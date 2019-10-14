@@ -84,7 +84,6 @@ public class Factory
     public int fitness()
     {
         int fitness = -1;
-
         //Go through each spot on the floor and see if it is next to something it doesn't like.
         for(int i = 0; i < length; i++)
         {
@@ -92,10 +91,16 @@ public class Factory
             {
                 //We have a station compare to the left.
                 try {
-                    if (floor[i][j] != null && floor[i - 1][j - 1] != null) {
-                        if (floor[i][j].getType() == floor[i - 1][j - 1].getType()) {
-                            fitness += 0;
-                        } else {
+                    if (floor[i][j] != null) {
+                        if(floor[i - 1][j - 1] != null){
+                            if (floor[i][j].getType() == floor[i - 1][j - 1].getType()) {
+                                fitness += 0;
+                            }
+                            else{
+                                fitness++;
+                            }
+                        }
+                        else {
                             //Not next to it's own type increment
                             fitness++;
                         }
@@ -107,9 +112,9 @@ public class Factory
                 }
             }
         }
-
         return fitness;
     }
+
 
     public int getLength() {
         return length;
